@@ -1,5 +1,5 @@
 pipeline{
-    agent any
+    agent master
     environment{
         DOCKER_HUB = credentials('docker-pwd')
     }
@@ -27,9 +27,15 @@ pipeline{
                 steps{
                     sh 'docker login -u manojnike15 -p ${DOCKER_HUB}'
                     sh 'docker push manojnike15/tomcat-app:$BUILD_NUMBER'
+                    sh 'echo $NODE_NAME'
                 }
-
-
+            }
+            stage("Running the container"){
+                steps{
+                    sshagent(['node01']){
+                        sh 'ssh -o StrictHostKeyChecking=no vagrant@192.168.56.3 docker run -p 8888:8080 -d --name mywebapp manojnike15/tomcat-app:$BUILD_NUMBER'
+                    }
+                }
             }
 
 
